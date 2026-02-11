@@ -1,0 +1,48 @@
+#!/bin/bash
+
+### This script is called after the user upgrades the application.
+
+KVER="$(uname -r)"
+#SVER="$(echo "${KVER}" | cut -d'.' -f1,2)"
+
+# Prepare build environment
+if [ ! -f "${TRIM_APPDEST}/server/src/Makefile" ]; then
+  echo "Source code for aic8800 not found." >$TRIM_TEMP_LOGFILE
+  exit 1
+fi
+
+# Build the module
+$(dirname $0)/docker_make.sh --pkgs build-essential bc -- \
+  make -C /lib/modules/${KVER}/build M="${TRIM_APPDEST}/server/src" CONFIG_AIC_LOADFW_SUPPORT=m CONFIG_AIC8800_WLAN_SUPPORT=m modules 2>$TRIM_TEMP_LOGFILE
+[ $? -ne 0 ] && exit 1
+
+if [ ! -f "${TRIM_APPDEST}/server/src/aic_load_fw/aic_load_fw.ko" ] || [ ! -f "${TRIM_APPDEST}/server/src/aic8800_fdrv/aic8800_fdrv.ko" ]; then
+  echo "Build aic8800 module failed." >$TRIM_TEMP_LOGFILE
+  exit 1
+fi
+
+# # Install the module
+# mkdir -p /usr/lib/modules/${KVER}/updates/drivers/net/wireless/aic8800
+# rm -f /usr/lib/modules/${KVER}/updates/drivers/net/wireless/aic8800/{aic_load_fw.ko,aic8800_fdrv.ko} 2>/dev/null || true
+# cp -vpf "${TRIM_APPDEST}/server/src/aic_load_fw/aic_load_fw.ko" /usr/lib/modules/${KVER}/updates/drivers/net/wireless/aic8800/aic_load_fw.ko
+# cp -vpf "${TRIM_APPDEST}/server/src/aic8800_fdrv/aic8800_fdrv.ko" /usr/lib/modules/${KVER}/updates/drivers/net/wireless/aic8800/aic8800_fdrv.ko
+# if [ $? -ne 0 ]; then
+#   echo "Install aic8800 module failed." >$TRIM_TEMP_LOGFILE
+#   exit 1
+# fi
+#
+# depmod -a || true
+# echo -e "aic_load_fw\naic8800_fdrv\n" >/etc/modules-load.d/aic8800.conf
+# if [ $? -ne 0 ]; then
+#   echo "Update modules load failed." >$TRIM_TEMP_LOGFILE
+#   exit 1
+# fi
+#
+# # Restart systemd-modules-load.service to load the module
+# systemctl restart systemd-modules-load.service
+# if [ $? -ne 0 ]; then
+#   echo "Restart systemd-modules-load.service failed." >$TRIM_TEMP_LOGFILE
+#   exit 1
+# fi
+
+exit 0
