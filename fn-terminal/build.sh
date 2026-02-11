@@ -66,14 +66,15 @@ rm -f "${WORKDIR}/app.tgz" "$(dirname "${WORKDIR}")/${APPNAME}_${PLATFORM}_v${VE
 tar -czf "${WORKDIR}/app.tgz" -C "${WORKDIR}/app" . >/dev/null 2>&1
 tar -czf "$(dirname "${WORKDIR}")/${APPNAME}_${PLATFORM}_v${VERSION}.fpk" -C "${WORKDIR}" cmd config wizard app.tgz ICON.PNG ICON_256.PNG manifest >/dev/null 2>&1
 
-if [ "${PLATFORM}" = "all" ]; then
-  for P in x86 arm; do
-    sed -i "s/= all/= ${P}/" "${WORKDIR}/manifest"
-    rm -f "$(dirname "${WORKDIR}")/${APPNAME}_${P}_v${VERSION}.fpk" 2>/dev/null || true
-    tar -czf "$(dirname "${WORKDIR}")/${APPNAME}_${P}_v${VERSION}.fpk" -C "${WORKDIR}" cmd config wizard app.tgz ICON.PNG ICON_256.PNG manifest >/dev/null 2>&1
-    sed -i "s/= ${P}/= all/" "${WORKDIR}/manifest"
-  done
-fi
+# # 多架构临时对策
+# if [ "${PLATFORM}" = "all" ]; then
+#   for P in x86 arm; do
+#     sed -i "s/= all/= ${P}/" "${WORKDIR}/manifest"
+#     rm -f "$(dirname "${WORKDIR}")/${APPNAME}_${P}_v${VERSION}.fpk" 2>/dev/null || true
+#     tar -czf "$(dirname "${WORKDIR}")/${APPNAME}_${P}_v${VERSION}.fpk" -C "${WORKDIR}" cmd config wizard app.tgz ICON.PNG ICON_256.PNG manifest >/dev/null 2>&1
+#     sed -i "s/= ${P}/= all/" "${WORKDIR}/manifest"
+#   done
+# fi
 
 rm -f "${WORKDIR}/app.tgz"
 

@@ -57,15 +57,15 @@ jobs:
             else
               ./fnpack build --directory "${APP}"
               mv -f "${APPNAME}.fpk" "${APPNAME}_${PLATFORM}_v${VERSION}.fpk"
-              # 多架构临时对策
-              if [ "${PLATFORM}" = "all" ]; then
-                for P in x86 arm; do
-                  sed -i "s/= all/= ${P}/" "${APP}/manifest"
-                  ./fnpack build --directory "${APP}"
-                  mv -f "${APPNAME}.fpk" "${APPNAME}_${P}_v${VERSION}.fpk"
-                  sed -i "s/= ${P}/= all/" "${APP}/manifest"
-                done
-              fi
+              # # 多架构临时对策
+              # if [ "${PLATFORM}" = "all" ]; then
+              #   for P in x86 arm; do
+              #     sed -i "s/= all/= ${P}/" "${APP}/manifest"
+              #     ./fnpack build --directory "${APP}"
+              #     mv -f "${APPNAME}.fpk" "${APPNAME}_${P}_v${VERSION}.fpk"
+              #     sed -i "s/= ${P}/= all/" "${APP}/manifest"
+              #   done
+              # fi
             fi
             SIZE=$(stat -c%s "${APPNAME}_${PLATFORM}_v${VERSION}.fpk" 2>/dev/null | awk '{printf "%10.3f",$1/1024/1024}')
             NAME=$(grep '^display_name' "${APP}/manifest" | awk -F= '{print $2}' | xargs)
