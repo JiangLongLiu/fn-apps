@@ -1,0 +1,85 @@
+[
+  {
+    "stepTitle": "安装向导",
+    "items": [
+      {
+        "type": "tips",
+        "helpText": "欢迎使用我们的应用！"
+      },
+      {
+        "type": "tips",
+        "helpText": "安装后请在 “虚拟机” 中启动/停止 fnOS-aarch64 虚拟机。"
+      },
+      {
+        "type": "text",
+        "field": "wizard_vcpu",
+        "label": "CPU 核心数",
+        "initValue": "2",
+        "rules": [
+          {
+            "required": true,
+            "message": "请输入 CPU 核心数"
+          },
+          {
+            "pattern": "^([1-9]|1[0-6])$",
+            "message": "CPU 核心数必须在 1 到 16 之间"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "field": "wizard_memory",
+        "label": "内存大小（MB）",
+        "initValue": "4096",
+        "rules": [
+          {
+            "required": true,
+            "message": "请输入内存大小（MB）"
+          },
+          {
+            "pattern": "^(204[8-9]|20[5-9][0-9]|2[1-9][0-9]{2}|[3-9][0-9]{3}|[12][0-9]{4}|3[01][0-9]{3}|32[0-6][0-9]{2}|327[0-5][0-9]|3276[0-8])$",
+            "message": "内存大小（MB）必须在 2048 到 32768 之间"
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "field": "wizard_size",
+        "label": "磁盘大小（GB）",
+        "initValue": "128",
+        "rules": [
+          {
+            "required": true,
+            "message": "请输入磁盘大小（GB）"
+          },
+          {
+            "pattern": "^([8-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-6])$",
+            "message": "磁盘大小（GB）必须在 8 到 256 之间"
+          }
+        ]
+      },
+      {
+        "type": "radio",
+        "field": "wizard_autostart",
+        "label": "是否开机自启",
+        "initValue": "false",
+        "options": [
+          {
+            "label": "是",
+            "value": "true"
+          },
+          {
+            "label": "否",
+            "value": "false"
+          }
+        ],
+        "rules": [
+          {
+            "required": true,
+            "message": "请选择是否开机自启"
+          }
+        ]
+      }
+    ]
+  }
+]

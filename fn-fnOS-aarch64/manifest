@@ -1,0 +1,12 @@
+appname               = fn-fnOS-aarch64
+version               = 1.0.0
+display_name          = fnOS-aarch64
+desc                  = 基于 aarch64 架构 的 fnOS 系统。
+platform              = x86
+source                = thirdparty
+maintainer            = Ing
+maintainer_url        = https://github.com/RROrg
+distributor           = RROrg
+distributor_url       = https://github.com/RROrg/fn-apps
+ctl_stop              = false
+install_dep_apps      = trim.vm

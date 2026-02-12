@@ -1,0 +1,164 @@
+#!/bin/bash
+
+### This script is called after the user installs the application.
+
+SHARE_PATH="$(echo "${TRIM_DATA_SHARE_PATHS}" | cut -d':' -f1)"
+mkdir -p "${SHARE_PATH}"
+
+OVS_BRIDGE="$(ovs-vsctl list-br 2>/dev/null | head -n 1)"
+if [ -z "${OVS_BRIDGE}" ]; then
+  echo "Please ensure that OVS bridges are present." >$TRIM_TEMP_LOGFILE
+  exit 1
+fi
+
+if [ ! -f "${SHARE_PATH}/fnOS-aarch64.iso" ]; then
+  DOWNLOAD_ARM="https://www.fnnas.com/download-arm"
+  ISO_URL="$(curl -sL "${DOWNLOAD_ARM}" | grep -oP '{[^{}]*fnos[^,]*\.iso[^}]*thunder[^}]*"}' | sort -u | sed 's/\\\"/"/g' | jq -rs '.[0].thunder // empty' 2>/dev/null | sed 's/^thunder:\/\///' | base64 -d 2>/dev/null | sed 's/^AA//; s/ZZ$//')"
+  if [ -z "${ISO_URL}" ]; then
+    echo "Failed to retrieve fnOS-aarch64 ISO URL." >$TRIM_TEMP_LOGFILE
+    exit 1
+  fi
+
+  ISO_PATH="${SHARE_PATH}/fnOS-aarch64.iso"
+  curl -skL "${ISO_URL}" -o "${ISO_PATH}"
+  [ $? -ne 0 ] && {
+    rm -f "${ISO_PATH}" 2>/dev/null || true
+    echo "Failed to download fnOS-aarch64 ISO." >$TRIM_TEMP_LOGFILE
+    exit 1
+  }
+fi
+
+DISK_PATH="${SHARE_PATH}/fnOS-aarch64.qcow2"
+CODE_PATH="${SHARE_PATH}/fnOS-aarch64_CODE.fd"
+VARS_PATH="${SHARE_PATH}/fnOS-aarch64_VARS.fd"
+
+if [ ! -f "${DISK_PATH}" ]; then
+  qemu-img create -f qcow2 "${DISK_PATH}" ${wizard_size:-128}G
+  [ $? -ne 0 ] && {
+    echo "Failed to create fnOS-aarch64.qcow2 disk image." >$TRIM_TEMP_LOGFILE
+    exit 1
+  }
+fi
+if [ ! -f "${CODE_PATH}" ]; then
+  cp -f "/usr/share/AAVMF/AAVMF_CODE.fd" "${CODE_PATH}"
+  [ $? -ne 0 ] && {
+    echo "Failed to prepare CODE file for fnOS-aarch64." >$TRIM_TEMP_LOGFILE
+    exit 1
+  }
+fi
+if [ ! -f "${VARS_PATH}" ]; then
+  cp -f "/usr/share/AAVMF/AAVMF_VARS.fd" "${VARS_PATH}"
+  [ $? -ne 0 ] && {
+    echo "Failed to prepare VARS file for fnOS-aarch64." >$TRIM_TEMP_LOGFILE
+    exit 1
+  }
+fi
+
+EXISTING_UUID="$(virsh -c qemu:///system domuuid fnOS-aarch64 2>/dev/null || true)"
+[ -z "${EXISTING_UUID}" ] && EXISTING_UUID="$(sed -n 's/.*<uuid>\(.*\)<\/uuid>.*/\1/p' "${SHARE_PATH}/fnOS-aarch64.xml" 2>/dev/null | head -n 1)"
+[ -n "${EXISTING_UUID}" ] && UUID_XML="<uuid>${EXISTING_UUID}</uuid>" || UUID_XML=""
+
+cat >"${SHARE_PATH}/fnOS-aarch64.xml" <<EOF
+<domain type='qemu'>
+  <name>fnOS-aarch64</name>
+  <title>fnOS-aarch64</title>
+  ${UUID_XML}
+  <memory unit='MiB'>${wizard_memory:-4096}</memory>
+  <currentMemory unit='MiB'>${wizard_memory:-4096}</currentMemory>
+  <vcpu placement='static'>${wizard_vcpu:-2}</vcpu>
+  <os>
+    <type arch='aarch64' machine='virt-7.2'>hvm</type>
+    <loader readonly='yes' type='pflash'>${CODE_PATH}</loader>
+    <nvram>${VARS_PATH}</nvram>
+    <boot dev='hd'/>
+    <boot dev='cdrom'/>
+  </os>
+  <features>
+    <acpi/>
+    <gic version='3'/>
+  </features>
+  <cpu mode='custom' match='exact'>
+    <model fallback='allow'>cortex-a72</model>
+  </cpu>
+  <qemu:commandline>
+    <qemu:arg value='-accel'/>
+    <qemu:arg value='tcg,thread=multi'/>
+  </qemu:commandline>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu-system-aarch64</emulator>
+    <controller type='scsi' model='virtio-scsi'/>
+    <controller type='virtio-serial' index='0'/>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='${DISK_PATH}'/>
+      <target dev='sda' bus='scsi'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='${ISO_PATH}'/>
+      <target dev='sdb' bus='scsi'/>
+      <readonly/>
+    </disk>
+    <interface type='bridge'>
+      <source bridge='${OVS_BRIDGE}'/>
+      <virtualport type='openvswitch'/>
+      <model type='virtio'/>
+    </interface>
+    <controller type='usb' model='qemu-xhci'/>
+    <input type='tablet' bus='usb'/>
+    <input type='keyboard' bus='usb'/>
+    <video>
+      <model type='ramfb' heads='1' primary='yes'/>
+    </video>
+    <video>
+      <model type='virtio' heads='1' primary='no'/>
+    </video>
+    <audio id='1' type='none'/>
+    <sound model='ich9'>
+      <audio id='1'/>
+    </sound>
+    <graphics type='vnc' socket='/var/run/vms/fnOS-aarch64.vnc.sock' powerControl='yes'>
+      <listen type='socket' socket='/var/run/vms/fnOS-aarch64.vnc.sock'/>
+    </graphics>
+    <channel type='unix'>
+      <target type='virtio' name='org.qemu.guest_agent.0'/>
+    </channel>
+    <channel type='qemu-vdagent'>
+      <source>
+        <clipboard copypaste='yes'/>
+      </source>
+      <target type='virtio' name='com.redhat.spice.0'/>
+    </channel>
+    <console type='pty'/>
+  </devices>
+</domain>
+EOF
+
+virsh -c qemu:///system define "${SHARE_PATH}/fnOS-aarch64.xml" >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "Failed to define libvirt domain fnOS-aarch64." >$TRIM_TEMP_LOGFILE
+  #exit 1
+fi
+
+if [ "${wizard_autostart:-}" == "true" ]; then
+  virsh -c qemu:///system autostart fnOS-aarch64 >/dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "Failed to autostart libvirt domain fnOS-aarch64." >$TRIM_TEMP_LOGFILE
+    exit 1
+  fi
+else
+	virsh -c qemu:///system autostart --disable fnOS-aarch64 >/dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		echo "Failed to disable autostart for libvirt domain fnOS-aarch64." >$TRIM_TEMP_LOGFILE
+		exit 1
+	fi
+fi
+
+chown -R libvirt-qemu:libvirt-qemu "${SHARE_PATH}"/* 2>/dev/null || true
+chmod -R ug+rw "${SHARE_PATH}/"* 2>/dev/null || true
+
+exit 0

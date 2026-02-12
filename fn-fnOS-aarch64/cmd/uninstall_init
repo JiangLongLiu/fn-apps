@@ -1,0 +1,14 @@
+#!/bin/bash
+
+### This script is called after the user uninstalls the application.
+
+# 停止虚拟机
+virsh -c qemu:///system destroy fnOS-aarch64 2>/dev/null || true
+
+# 删除虚拟机定义
+virsh -c qemu:///system undefine fnOS-aarch64 2>/dev/null || true
+
+apt purge -y qemu-system-arm qemu-efi-aarch64
+apt autoremove -y
+
+exit 0

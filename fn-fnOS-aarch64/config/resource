@@ -1,0 +1,14 @@
+{
+  "data-share": {
+    "shares": [
+      {
+        "name": "fn-fnOS-aarch64",
+        "permission": {
+          "rw": [
+            "fn-fnOS-aarch64"
+          ]
+        }
+      }
+    ]
+  }
+}
