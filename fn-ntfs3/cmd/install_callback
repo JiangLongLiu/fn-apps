@@ -45,7 +45,9 @@ if [ $? -ne 0 ]; then
 fi
 
 # Replace the mount.ntfs symlink to point to mount.ntfs3
-rm -f /usr/sbin/mount.ntfs && echo -e '#!/bin/sh\nmount -t ntfs3 "$@"' >/usr/sbin/mount.ntfs && chmod a+x /usr/sbin/mount.ntfs
+rm -f /usr/sbin/mount.ntfs 2>/dev/null || true
+echo -e '#!/bin/sh\n# [ -b "${1}" ] && ntfsfix "${1}" >/dev/null 2>&1 || true\nmount -t ntfs3 "$@" -o force' >/usr/sbin/mount.ntfs
+chmod a+x /usr/sbin/mount.ntfs
 if [ $? -ne 0 ]; then
   echo "Replace mount.ntfs symlink failed." >$TRIM_TEMP_LOGFILE
   exit 1
