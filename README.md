@@ -23,6 +23,16 @@
 | fn-wifi-hotspot | v1.0.8 | all | 无线热点创建工具，允许用户轻松地将计算机变成一个 Wi-Fi 热点，分享网络连接给其他设备。 |
 | fn-yt6801 | v1.0.1 | all | Motorcomm/裕太微 千兆有线网卡 YT6801 驱动，提供对该芯片的网络功能支持。 |
 
+
+## fnOS
+fnOS 下载地址：https://raw.githubusercontent.com/RROrg/fn-apps/refs/heads/main/fnOS.json  
+获取最新版本的 fnOS 镜像下载地址：
+```shell
+# E.g. 获取 fnOS-x86_64 最新版本的下载地址
+curl -skL "https://raw.githubusercontent.com/RROrg/fn-apps/refs/heads/main/fnOS.json" \
+| jq -r '[.[] | select(.name=="fnOS-x86_64")] | sort_by((.version | split(".") | map(tonumber)), .version) | last | .url'
+```
+
 ## 社区支持
 
 - QQ 群：130359605 · [点击加入](https://qm.qq.com/q/xMUyJacSIw)
