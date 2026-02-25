@@ -12,8 +12,7 @@ ARCH=$(uname -m)
 ALLOY_BIN="${TRIM_APPDEST}/bin/${ARCH}/alloy"
 ALLOY_DATA="${TRIM_PKGVAR}/data"
 
-# Alloy 启动命令（使用 TRIM_SERVICE_PORT 环境变量）
-CMD="${ALLOY_BIN} run ${CONFIG_FILE} --server.http.listen-addr=0.0.0.0:${TRIM_SERVICE_PORT} --storage.path=${ALLOY_DATA}"
+CMD="${ALLOY_BIN} run ${CONFIG_FILE} --server.http.listen-addr=0.0.0.0:${wizard_port:-12345} --storage.path=${ALLOY_DATA}"
 
 log_msg() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> ${LOG_FILE}
