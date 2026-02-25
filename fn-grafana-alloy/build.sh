@@ -46,6 +46,11 @@ for arch in "${ARCHS[@]}"; do
   fi
 
   rm -rf "/tmp/alloy-extract-${arch}"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    command -v unzip >/dev/null 2>&1 || { brew install unzip >/dev/null 2>&1; }
+  else
+    command -v unzip >/dev/null 2>&1 || { apt update >/dev/null 2>&1 && apt install -y unzip >/dev/null 2>&1; }
+  fi
   unzip -o "${zipfile}" -d "/tmp/alloy-extract-${arch}" >/dev/null
 
   mkdir -p "${WORKDIR}/app/bin/${arch}"

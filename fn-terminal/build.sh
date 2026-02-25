@@ -21,7 +21,7 @@ DEBS=(
   https://mirrors.ustc.edu.cn/debian/pool/main/t/tmux/tmux_3.3a-3_@ARCH@.deb
 )
 
-command -v dpkg-deb >/dev/null 2>&1 || apt update >/dev/null 2>&1 && apt install -y dpkg-deb >/dev/null 2>&1
+command -v dpkg-deb >/dev/null 2>&1 || { apt update >/dev/null 2>&1 && apt install -y dpkg-deb >/dev/null 2>&1; }
 
 for a in "${ARCH[@]}"; do
   rm -rf "${WORKDIR}/app/server/${a}" 2>/dev/null || true
