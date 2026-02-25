@@ -1,0 +1,11 @@
+appname               = fn-grafana-alloy
+version               = 1.13.2
+display_name          = Grafana Alloy
+desc                  = 可观测性数据收集器，收集系统日志、应用日志发送到 Loki
+platform              = all
+source                = thirdparty
+maintainer            = Grafana Labs
+distributor           = fnOS Community
+desktop_uidir         = ui
+desktop_applaunchname = fn-grafana-alloy.main
+ctl_stop              = true

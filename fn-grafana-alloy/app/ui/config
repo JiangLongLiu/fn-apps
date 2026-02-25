@@ -1,0 +1,13 @@
+{
+    ".url": {
+        "fn-grafana-alloy.main": {
+            "title": "Grafana Alloy",
+            "icon": "images/icon-{0}.png",
+            "type": "url",
+            "protocol": "http",
+            "port": "${wizard_port}",
+            "url": "/",
+            "allUsers": true
+        }
+    }
+}
