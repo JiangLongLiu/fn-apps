@@ -16,8 +16,8 @@ WORKDIR="$(
 
 get_latest_version() {
   local tag
-  tag=$(curl -fsSL "https://api.github.com/repos/grafana/alloy/releases/latest" \
-    | grep '"tag_name"' | head -1 | sed 's/.*"v\([^"]*\)".*/\1/')
+  tag=$(curl -fsSL -w "%{url_effective}" -o /dev/null "https://github.com/grafana/alloy/releases/latest" \
+    | awk -F'/' '{print $NF}' | sed 's/^[v|V]//g')
   if [ -z "$tag" ]; then
     echo "ERROR: Failed to get latest version" >&2
     exit 1
