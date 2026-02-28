@@ -176,6 +176,27 @@ done
 
 docker run --rm -v /usr:/usr.host:ro -v "${BUILD}":"${BUILD}":ro -v "${SPACE}":"${SPACE}":rw -w "${SPACE}" "${IMAGE}" bash -lc "
 set -euo pipefail
+[ -r /etc/os-release ] && . /etc/os-release || true
+# Use Chinese mirrors (Tsinghua) for faster apt in China
+case "\${ID:-}" in
+  ubuntu)
+    CODENAME="\${VERSION_CODENAME:-22.04}"
+    cat >/etc/apt/sources.list <<EOF
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ \${CODENAME} main restricted universe multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ \${CODENAME}-updates main restricted universe multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ \${CODENAME}-security main restricted universe multiverse
+EOF
+    ;;
+  debian)
+    CODENAME="\${VERSION_CODENAME:-bookworm}"
+    cat >/etc/apt/sources.list <<EOF
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ \${CODENAME} main contrib non-free non-free-firmware
+deb http://mirrors.tuna.tsinghua.edu.cn/debian/ \${CODENAME}-updates main contrib non-free non-free-firmware
+deb http://mirrors.tuna.tsinghua.edu.cn/debian-security \${CODENAME}-security main contrib non-free non-free-firmware
+EOF
+    ;;
+  *) ;;
+esac
 apt-get update -y >/dev/null
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends apt-utils ${PKGS_ESCAPED} >/dev/null
 PATH=/usr.host/bin:/usr.host/sbin:\${PATH:-} LD_LIBRARY_PATH=/usr.host/lib/x86_64-linux-gnu:/usr.host/lib:\${LD_LIBRARY_PATH:-} ${MAKE_ARGS_ESCAPED} 2>&1 | tee build.log
